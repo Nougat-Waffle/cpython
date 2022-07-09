@@ -42,8 +42,8 @@ def _bytes_from_decode_data(s):
     try:
         return memoryview(s).tobytes()
     except TypeError:
-        raise TypeError("argument should be a bytes-like object or ASCII "
-                        "string, not %r" % s.__class__.__name__) from None
+        raise TypeError(f"argument should be a bytes-like object or ASCII "
+                        f"string, not {s.__class__.__name__}") from None
 
 
 # Base64 encoding/decoding uses binascii
@@ -309,7 +309,7 @@ def _85encode(b, chars, chars2, pad=False, foldnuls=False, foldspaces=False):
     padding = (-len(b)) % 4
     if padding:
         b = b + b'\0' * padding
-    words = struct.Struct('!%dI' % (len(b) // 4)).unpack(b)
+    words = struct.unpack(f'!{len(b) // 4}I', b)
 
     chunks = [b'z' if foldnuls and not word else
               b'y' if foldspaces and word == 0x20202020 else
@@ -427,7 +427,7 @@ def a85decode(b, *, foldspaces=False, adobe=False, ignorechars=b' \t\n\r\v'):
             # Skip whitespace
             continue
         else:
-            raise ValueError('Non-Ascii85 digit found: %c' % x)
+            raise ValueError(f'Non-Ascii85 digit found: {x}')
 
     result = b''.join(decoded)
     padding = 4 - len(curr)
@@ -485,14 +485,12 @@ def b85decode(b):
         except TypeError:
             for j, c in enumerate(chunk):
                 if _b85dec[c] is None:
-                    raise ValueError('bad base85 character at position %d'
-                                    % (i + j)) from None
+                    raise ValueError(f'bad base85 character at position {i + j}') from None
             raise
         try:
             out.append(packI(acc))
         except struct.error:
-            raise ValueError('base85 overflow in hunk starting at byte %d'
-                             % i) from None
+            raise ValueError(f'base85 overflow in hunk starting at byte {i}') from None
 
     result = b''.join(out)
     if padding:
@@ -534,15 +532,13 @@ def _input_type_check(s):
     try:
         m = memoryview(s)
     except TypeError as err:
-        msg = "expected bytes-like object, not %s" % s.__class__.__name__
+        msg = f"expected bytes-like object, not {s.__class__.__name__}"
         raise TypeError(msg) from err
     if m.format not in ('c', 'b', 'B'):
-        msg = ("expected single byte elements, not %r from %s" %
-                                          (m.format, s.__class__.__name__))
+        msg = f"expected single byte elements, not {m.format} from {s.__class__.__name__}"
         raise TypeError(msg)
     if m.ndim != 1:
-        msg = ("expected 1-D data, not %d-D data from %s" %
-                                          (m.ndim, s.__class__.__name__))
+        msg = f"expected 1-D data, not {m.ndim}-D data from {s.__class__.__name__}"
         raise TypeError(msg)
 
 
